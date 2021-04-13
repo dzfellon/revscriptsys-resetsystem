@@ -1,211 +1,82 @@
---[[ SCRIPTING> MarcelloMkez <scriptING ]]
-
---[[ [Advanced Reset System]
-Autor: MarcelloMkez
-Versão: 1.0
-TFS: 0.3.6
-Testado em: 8.50
-Fórum: [Talk Action] Advanced Reset System' - XTibia - A sua comunidade de Tibia e OTserv
-
-[Características]
-~ Versão 1.0 ~
-- Resets no Look;
-- Premium Account ou não;
-- Mudar Vocação;
-- Limite de Resets;
-- Opções para Abilitar e Desabilitar Condições;
-
-[Em Construção]
-- Stages Free e Premium;
-- 'Talvez' um novo sistema de mudar Vocação;
-]]
-
 local resetSys = TalkAction("!reset")
 
-function resetSys.onSay(cid, words, param)
-
---[Configurações de Condição]
-
-config = {
-
-needPa = false, -- Precisa de Premium Account? [true / false]
-needPz = false, -- Precisa estar em Protection Zone? [true / false]
-battle = false, -- Precisa estar sem Batlle para Resetar? [true / false]
-withe = false, -- Players PK Withe pode Resetar? [true / false]
-red = false, -- Players PK Red pode Resetar? [true / false]
-tp = true, -- Teleportar para o Templo após o reset? [true / false]
-look = true, -- Mostrar Resets no Look do Player? [true / false]
-addLimite = true, -- Abilitar Limite de Resets? [true / false]
-setClasse = false, -- Mudar Vocação do player quando resetar? [true / false]
-storage = 66007, -- Storage [valor]
-
---[Configurações do Reset]
-
-resetStatus = {
-player = getPlayerGUID(cid), -- Não Mude.
-lvl = 1000 , -- Level Necessário para Resetar. [valor]
-lvlreset = 8, -- Level que retornará após o Reset. [valor]
-limite = 50, -- Máximo de resets que um player pode chegar. [valor]
-newClasse = 1, -- Id da Nova Vocação após o Reset. [valor]
-tempo= 2 -- Tempo para o Player deslogar para Resetar. Em segundos. [valor]
-},
-
+local config = {
+    backToLevel = 8,
+    redskull = false, -- need to be without redskull to reset?
+    battle = true, -- need to be without battle to reset?
+    pz = false, -- need to be in protect zone to reset?
+    stages = {
+        {resets = 4, level = 350, premium = 330},
+        {resets = 9, level = 355, premium = 340},
+        {resets = 14, level = 360, premium = 355},
+        {resets = 19, level = 365, premium = 360},
+        {resets = 24, level = 380, premium = 370},
+        {resets = 29, level = 390, premium = 380},
+        {resets = 34, level = 410, premium = 400},
+        {resets = 39, level = 430, premium = 420},
+        {resets = 44, level = 450, premium = 440},
+        {resets = 49, level = 480, premium = 470},
+        {resets = 54, level = 510, premium = 500},
+        {resets = 59, level = 550, premium = 540},
+        {resets = 64, level = 590, premium = 580},
+        {resets = 69, level = 630, premium = 620},
+        {resets = 74, level = 680, premium = 670},
+        {resets = 79, level = 730, premium = 720},
+        {resets = 84, level = 780, premium = 770},
+        {resets = 89, level = 860, premium = 840},
+        {resets = 94, level = 930, premium = 910},
+        {resets = 2^1024, level = 1010, premium = 990}
+    }
 }
 
---[Funções]
-
-function Reseting(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doTeleportThing(cid, getTownTemplePosition(getPlayerTown(cid)))
-doPlayerSetVocation(cid, config.resetStatus.newClasse)
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `description` = ' [Reset "..resets.."]' WHERE `players`.`id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function noAll(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `description` = '' WHERE `players`.`id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function noTeleporting(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doPlayerSetVocation(cid, config.resetStatus.newClasse)
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `description` = ' [Reset "..resets.."]' WHERE `players`.`id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function noLook(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doPlayerSetVocation(cid, config.resetStatus.newClasse)
-doTeleportThing(cid, getTownTemplePosition(getPlayerTown(cid)))
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `description` = '' WHERE `players`.`id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function noClasse(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doTeleportThing(cid, getTownTemplePosition(getPlayerTown(cid)))
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `description` = ' [Reset "..resets.."]' WHERE `players`.`id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function setClasse(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doPlayerSetVocation(cid, config.resetStatus.newClasse)
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `description` = '' WHERE `players`.`id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function look(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `description` = ' [Reset "..resets.."]' WHERE `players`.`id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-return TRUE
-end
-
-function teleporting(cid)
-resets = getResets(cid)
-setPlayerStorageValue(cid,config.storage,resets+1)
-doTeleportThing(cid, getTownTemplePosition(getPlayerTown(cid)))
-doRemoveCreature(cid)
-db.executeQuery("UPDATE `players` SET `description` = '' WHERE `players`.`id` = "..config.resetStatus.player)
-db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
-return TRUE
-end
-  
-
-function getResets(cid)
-resets = getPlayerStorageValue(cid,config.storage)
-if resets < 0 then
-resets = 0
-end
-return resets
-end
-
-local resets = getResets(cid)
---local needLvl ="Vocàprecisa de "config.resetStatus.lvl -player:getLevel(cid)" level's para resetar."
-local msg ="~~[Reset: "..getResets(cid).."]~~ 'Sucesso ao Resetar! Vocàserá deslogado em "..config.resetStatus.tempo.." Segundos."
-
---[Condiçoes]
-
-if(config.needPz == true) and (getTilePzInfo(player:getPosition(cid)) == FALSE) then
-doPlayerSendTextMessage(cid,22,"VocàPrecisa estar em Protection Zone Para Resetar.")
-return TRUE
-elseif(config.addLimite == true) and (getResets(cid) == config.resetStatus.limite) then
-doPlayerSendTextMessage(cid, 22, "Vocàja atingiu o Limite de Resets.")
-return TRUE
-
-elseif(config.withe == false) and (player:getSkull(cid) == 3) then
-doPlayerSendTextMessage(cid,22,"Vocàta PK White, por isso não pode resetar.")
-return TRUE
-
-elseif(config.red == false) and (player:getSkull(cid) == 4) then
-doPlayerSendTextMessage(cid,22,"Vocàta PK Red, por isso não pode resetar.")
-return TRUE
-
-elseif(config.needPa == true) and not isPremium(cid) then
-doPlayerSendTextMessage(cid,22,"VocàPrecisa ser Premium Account para Resetar.")
-return TRUE
-
-elseif(config.battle == true) and (player:getCondition(cid, CONDITION_INFIGHT) == TRUE) then
-doPlayerSendTextMessage(cid,22,"VocàPrecisa estar sem Battle para Resetar.")
-return TRUE 
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == true) and (config.look == true) and (config.setClasse == true) then
-addEvent(Reseting, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == false) and (config.look == false) and (config.setClasse == false) then
-addEvent(noAll, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == false) and (config.look == true) and (config.setClasse == true) then
-addEvent(noTeleporting, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == true) and (config.look == false) and (config.setClasse == true) then
-addEvent(noLook, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == true) and (config.look == true) and (config.setClasse == false) then
-addEvent(noClasse, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == false) and (config.look == false) and (config.setClasse == true) then
-addEvent(setClasse, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == false) and (config.look == true) and (config.setClasse == false) then
-addEvent(look, config.resetStatus.tempo* 1000, cid)
-
-elseif player:getLevel(cid) >= config.resetStatus.lvl and (config.tp == true) and (config.look == false) and (config.setClasse == false) then
-addEvent(teleporting, config.resetStatus.tempo* 1000, cid)
-
-elseif doPlayerSendCancel(cid, needLvl) then
-doSendMagicEffect(getPlayerPosition(cid), CONST_ME_POFF)
-return TRUE
-end
-
-if doPlayerPopupFYI(cid, msg) then
-
-end
-return TRUE
-
+function resetSys.onSay(player, words, param)
+    local function getExperienceForLevel(lv)
+        lv = lv - 1
+        return ((50 * lv * lv * lv) - (150 * lv * lv) + (400 * lv)) / 3
+    end
+    local function getPlayerResets()
+        local resets = player:getStorageValue(500)
+        return resets < 0 and 0 or resets
+    end
+   
+    local function doPlayerAddResets(count)
+        player:setStorageValue(500, getPlayerResets() + count)
+    end
+   
+    if config.redskull and player:getSkull() == 4 then
+        player:sendCancelMessage("You need to be without red skull to reset.")
+        return false
+    elseif config.pz and not getTilePzInfo(player:getPosition()) then
+        player:sendCancelMessage("You need to be in protection zone to reset.")
+        return false
+    elseif config.battle and player:getCondition(CONDITION_INFIGHT) then
+        player:sendCancelMessage("You need to be without battle to reset.")
+        return false
+    end
+   
+    local resetLevel = 0
+    for x, y in ipairs(config.stages) do
+        if getPlayerResets() <= y.resets then
+            resetLevel = player:isPremium() and y.premium or y.level
+            break
+        end
+    end
+   
+    if getPlayerLevel(player) < resetLevel then
+        player:sendCancelMessage("You need level " .. resetLevel .. " or more to reset.")
+        return false
+    end
+   
+    doPlayerAddResets(1)
+    local healthMax, manaMax, health, mana = player:getMaxHealth(), player:getMaxMana(), player:getHealth(), player:getMana()
+    player:removeExperience(getExperienceForLevel(player:getLevel()) - getExperienceForLevel(config.backToLevel))
+    player:setMaxHealth(healthMax)
+    player:setMaxMana(manaMax)
+    player:addHealth(health)
+    player:addMana(mana)
+    player:getPosition():sendMagicEffect(CONST_ME_FIREWORK_RED)
+    player:sendTextMessage(MESSAGE_INFO_DESCR, "Now you have " .. getPlayerResets() .. " " .. (getPlayerResets() == 1 and "reset" or "resets") .. ".")
+    return false
 end
 
 resetSys:register() 
