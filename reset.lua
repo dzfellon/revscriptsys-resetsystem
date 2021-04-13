@@ -133,6 +133,7 @@ db.executeQuery("UPDATE `players` SET `description` = '' WHERE `players`.`id` = 
 db.executeQuery("UPDATE `players` SET `level` = "..config.resetStatus.lvlreset..", `experience` = 0 WHERE `id` = "..config.resetStatus.player)
 return TRUE
 end
+  
 
 function getResets(cid)
 resets = getPlayerStorageValue(cid,config.storage)
